@@ -10,3 +10,5 @@ Welcome to the Nightly builds page! The following features are being tested:
 - Experimental switch interrupt (Yay multitasking!)
 - Various improvements to variables (fixed assignment of float to int and minor optimization of memory use)
 - A settings page!
+- PID control
+- Sensor readings with averaging
