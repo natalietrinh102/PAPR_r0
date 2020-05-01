@@ -35,9 +35,9 @@ int timer2Div = 64;
 
 // Quickcharge
 bool qcEnabled = true; // true = Re-establish handshake on heart, false = disable QC Heartbreak
-const int qcDataPos = 2;
+const int qcDataPos = 8;
 const int qcDataNeg = 5;
-QC2Control quickCharge(2, 5);
+QC2Control quickCharge(qcDataPos, qcDataNeg);
 
 // Fan Control
 const int fanPin = 3;  // ATMEGA328 only supports full fast PWM on pin 3 (reduces motor whine)
@@ -230,5 +230,6 @@ void pidMode(){
     break;
 }
 
+// Start PID control
 
 }
