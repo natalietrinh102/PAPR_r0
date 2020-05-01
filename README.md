@@ -20,7 +20,7 @@ The project is being designed in phases, with more advanced features implemented
 ### Stage 1 (Power Control) - CURRENT
 - Code modularization 
 - Quickcharge 2.0+ support
-- Support for autoswitching of power supplies 
+- Support for autoswitching of power supplies up to 14.4V
 - PWM frequency tuning (Reduces blower noise)
 
 
