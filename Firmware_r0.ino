@@ -16,11 +16,12 @@ This values provide PMW frequency tuning for pin 3. Play with this if the fan/mo
 Different fans/motors will prefer different frequencies, and some will whine regardless. 
 BIGGER IS NOT BETTER. Higher frequencies change motor whine frequency at the cost of torque and resolution.
 
-Note changing the frequency will mess with the manual mode calibration! 
+Note changing the frequency will mess with the manual and PID calibration! 
 
 timer2Div |    PWM
    value  | frequency
 -----------------------
+0         | Disable frequency tuning (Compatiable with non-ATMEGA328 chips)
 1         | 31372.55 Hz
 8         | 3921.16 Hz
 32        | 980.39 Hz
@@ -31,21 +32,18 @@ timer2Div |    PWM
 */
 int timer2Div = 64;
 
-
-
 // Quickcharge
-bool qcEnabled = true; // true = Re-establish handshake on heart, false = disable QC Heartbreak
+bool qcEnabled = true; // true = Re-establish handshake on heart, false = disable QC2.0 Heartbeat
 const int qcDataPos = 8;
 const int qcDataNeg = 5;
 QC2Control quickCharge(qcDataPos, qcDataNeg);
 
 // Fan Control
 const int fanPin = 3;  // ATMEGA328 only supports full fast PWM on pin 3 (reduces motor whine)
-const int switchLow = 7; // Prefer non-PWM pins for switch
+const int switchLow = 7;
 const int switchHigh = 4;
-int fanSpeed = 255; // Integer fan speed is max by default
-int LowOn;
-int HighOn;
+const int spoolTime = 1000; // Delays control inputs for in ms, prevents stalls
+int fanSpeed = 255; // Sets initial fan speed. It is highly preferred to change spoolTime, but this may be useful for preventing surges in current draw during spooling
 int SpeedSet;
 
 // Manual Override Mode
@@ -59,10 +57,20 @@ int highFanmod = 100;
 const int presPin = A0; // Define which pin the pressure sensor output is connected to
 const int presMin = 20; // The minimum output voltage of the pressure sensor, expressed as V * 100 (presMin = 20 -> 0.2)
 const int presMax = 470; // The maximum output voltage of the pressure sensor, expressed as V * 100
-int lowFanauto = 650; // Target airflow in, expressed as CFM * 100 (lowFanauto = 650 -> 6.50 CFM)
-int medFanauto = 750;
-int highFanauto = 950;
-int CurrentCfm;
+const int lowFanauto = 650; // Target airflow in, expressed as CFM * 100 (lowFanauto = 650 -> 6.50 CFM)
+const int medFanauto = 750;
+const int highFanauto = 950;
+#define OUTPUT_MIN 100 // Minimum output. Adjust this to prevent stalls
+#define OUTPUT_MAX 255 // Maximum output. Best to leave this at the max of 255, unless your fan is massively overpowered.
+#define KP .12 // Initial PID proportional gain
+#define KI .0003 // Initial PID integral gain
+#define KD 0 // Initial PID derivative gain
+double currentCfm, setPoint, outputVal;
+const int initialStep = 500; // The inital PID time interval in ms. Use an aggressive low setting in the beginning.
+int slowStep = 5000; // Slower PID interval in ms. Reduces resource use.
+
+AutoPID fanPID(&currentCfm, &setPoint, &outputVal, OUTPUT_MIN, OUTPUT_MAX, KP, KI, KD);
+
 
 // ------------- SETUP -------------- //
 
@@ -110,8 +118,11 @@ pinMode(fanPin,OUTPUT);
 pinMode(switchLow,INPUT_PULLUP);
 pinMode(switchHigh,INPUT_PULLUP);
 
+// Setup PID
+fanPID.setTimeStep(initialStep);
+
 // Initial Quickcharge handshake
-// Note - QC needs a very short delay before accepting handshakes - run setVoltage() late in setup
+// Note - QC needs a short delay before accepting handshakes - run setVoltage() late in setup
 switch (qcEnabled) {
   case true:
     Serial.println("Sending Initial Quickcharge handshake");
@@ -124,15 +135,15 @@ switch (qcEnabled) {
 
 /*
  EXPERIMENTAL CODE
-// Switch interrupt, urgently reads changes in speed.
+// Switch interrupt, urgently reads changes in speed setting.
 const byte interruptPin = 2; //On ATMEGA328, only pins 2 & 3 can have interrupts. 
 attachInterrupt(digitalPinToInterrupt(interruptPin), speedRead, CHANGE);
 */
  
-// Spool fan up before continuing - this helps prevent stalls
+// Spool up fan (Anti-stall)
 Serial.println("Spooling fan");
-analogWrite(fanPin, 255);
-delay(1000);
+analogWrite(fanPin, fanSpeed);
+delay(spoolTime);
 }
 
 // ------------- LOOP -------------- //
@@ -150,9 +161,6 @@ switch (manualEnabled) {
     pidMode();
     break;
 }
-
-// Push fan speed to fan
-analogWrite(fanPin, fanSpeed);
 }
 
 // ------------- FUNCTIONS -------------- //
@@ -181,9 +189,13 @@ void manualMode(){
     Serial.println("ERROR: SpeedSet is invalid!");
     break;
 }
+analogWrite(fanPin, fanSpeed);
 }
 
 void readSpeed(){
+  int LowOn;
+  int HighOn;
+
   Serial.println("Attempting to read switch state...");
 // Read switch and determine perferred airflow.
   LowOn = digitalRead(switchLow);
@@ -208,22 +220,21 @@ void readSpeed(){
 void pidMode(){
 
 // Find the target CFM
-  float TargetCfm; // Remember this is multipled by 100! (Saves memory :D)
     switch (SpeedSet) {
   case 1:
     Serial.print("Low: Automatically setting CFM to ");
     Serial.println(lowFanauto / 100);
-    TargetCfm = lowFanauto;
+    setPoint = lowFanauto;
     break;
   case 2:
     Serial.print("Low: Automatically setting CFM to ");
     Serial.println(medFanauto / 100);
-    TargetCfm = medFanauto;
+    setPoint = medFanauto;
     break;
   case 3:
     Serial.print("Low: Automatically setting CFM to ");
     Serial.println(highFanauto / 100);
-    TargetCfm = highFanauto;
+    setPoint = highFanauto;
     break;
   default:
     Serial.println("ERROR: SpeedSet is invalid!");
@@ -231,5 +242,6 @@ void pidMode(){
 }
 
 // Start PID control
-
+fanPID.run(); // Although this is called in every loop, it will only update per interval specified in setTimeStep.
+analogWrite(fanPin, outputVal);
 }
