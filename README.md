@@ -26,3 +26,5 @@ The code currently runs off a Ardunio Uno - It will be made into it's own ATMEGA
 ### COMING SOON...
 - LED Indicators
 - Mechanical design
+
+![Schematic](https://raw.githubusercontent.com/natalietrinh102/PAPR_r0/master/Schematic.png)
