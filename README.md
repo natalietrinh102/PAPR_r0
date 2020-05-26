@@ -7,7 +7,7 @@ This project aims to create a flexible, adaptable package that can be easily mod
 
 ## Challenges
 - Supply chain delays and shortages have caused a lack of geniune filter material, along with lead times with parts forces us to use locally available and locally manufactured parts. As such, this package is designed to be easily tuned for different combinations of fans and filters. In addition to this, a differentional pressure sensor (used for airflow monitoring) allows the circuit to compensate for differences in configurations and filter quality. 
-- Charging / power supply infrastructure: PAPRs are relatively high current, power hungry devices. As such, high density battery technologies such as Li-ion or LiPo batteries are preferred, but that in itself presents it's own challenges. As such, this packaged to designed to handle two configurations of power input - direct 12-14.4V current froma battery pack, or through Quickcharge 2.0+ compatible powerbanks, which are widely available and already owned by many people.
+- Charging / power supply infrastructure: PAPRs are relatively high current, power hungry devices. As such, high density battery technologies such as Li-ion or LiPo batteries are preferred, but that in itself presents it's own challenges. As such, this packaged to designed to handle two configurations of power input - direct 12-14.4V current from an external power source, or through Quickcharge 2.0+ compatible powerbanks, which are widely available and already owned by many people.
 
 
 ## Project Features
