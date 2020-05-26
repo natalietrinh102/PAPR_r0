@@ -11,24 +11,18 @@ This project aims to create a flexible, adaptable package that can be easily mod
 
 
 ## Project Features
-The project is being designed in phases, with more advanced features implemented in future releases.
-### Stage 0 (Proof of concept)
-- Manual mode (tuned by hand for each configuration)
-- Only direct 12V supported
-- Tested on Arduino Uno
+The code currently runs off a Ardunio Uno - It will be made into it's own ATMEGA328P based circuit later :)
 
-### Stage 1 (Power Control) - CURRENT
-- Code modularization 
-- Quickcharge 2.0+ support
-- Support for autoswitching of power supplies up to 14.4V
+### STABLE
 - PWM frequency tuning (Reduces blower noise)
+- Fan Speed selection
 
-
-### Stage 2 (Automation)
-- Pin Interrupt mode (Allows PID loop to be interrupted on user input)
+### NIGHTLY
 - Differentional pressure sensor reading 
+- Power sources: Quickcharge 2.0+ external power sources up to 14.4V
 - PID w/ autotuning
+- FTDI
 
-### Stage 3 (Miniaturization)
-- Migrate from UNO to custom PCB based on ATmega328p
-- Add a debug port featuring Serial Tx, Serial Rx, and RESET, and along with AVR Programmer pins to allow for easy firmware updates and tuning. 
+### COMING SOON...
+- LED Indicators
+- Mechanical design
